@@ -1,70 +1,105 @@
-# Getting Started with Create React App
+# Triangulation — IMDb Movie & TV Database Explorer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React single-page web app for exploring an IMDb-style movies and TV database.
+It provides a simple UI to run ad-hoc SQL queries and a set of pre-built "top N"
+queries (top movies, top TV series, top directors, and titles by genre) against
+a backend query API, displaying the results in paginated tables.
 
-## Available Scripts
+This is the frontend client built by the Triangulation team. It talks to a
+separate backend service that executes SQL against the project database and
+returns column/row JSON.
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Free-form SQL query** — type any query and view the results in a table.
+- **Top movies** — list the top N highest-rated movies (with more than 1000 votes).
+- **Top TV series** — list the top N highest-rated TV series (with more than 1000 votes).
+- **Top directors** — list the top N directors ranked by the average rating of their titles.
+- **Browse by genre** — pick a genre (Action, Comedy, Drama, Horror, Sci-Fi, and ~20 more) and list matching titles.
+- **Paginated results** — every result set is rendered with `react-table` (configurable page size).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- [React 18](https://reactjs.org/) (class components)
+- [Create React App](https://github.com/facebook/create-react-app) / `react-scripts` (build tooling)
+- [Material UI (MUI v5)](https://mui.com/) and `@material-ui/core` v4 for UI components
+- [Emotion](https://emotion.sh/) for styling (MUI peer dependency)
+- [`react-table-6`](https://www.npmjs.com/package/react-table-6) for rendering result tables
+- Fetches data from a backend query API via `fetch` (HTTP `POST /query`)
 
-### `npm test`
+## Getting Started
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Prerequisites
 
-### `npm run build`
+- [Node.js](https://nodejs.org/) (a current LTS release is recommended) and npm.
+- Access to the backend query API. The frontend `POST`s queries to a query
+  endpoint and expects a JSON response of the form `{ "columns": [...], "rows": [...] }`.
+  The endpoint URL is currently hard-coded in `src/App.js`; update it there to
+  point at your backend instance.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+git clone https://github.com/JayeshSuryavanshi/Team-Triangulation.git
+cd Team-Triangulation
+npm install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Running the app
 
-### `npm run eject`
+```bash
+npm start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Runs the app in development mode at [http://localhost:3000](http://localhost:3000).
+The page reloads automatically on changes.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Running tests
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm test
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Launches the test runner in interactive watch mode.
 
-## Learn More
+### Production build
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm run build
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Builds the app into the `build/` folder, optimized and minified for deployment.
 
-### Code Splitting
+## Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
+.
+├── public/                # Static assets and HTML template
+│   ├── index.html
+│   └── manifest.json
+├── src/
+│   ├── App.js             # Main component: query form, top-N forms, genre selector
+│   ├── TableComponent.js  # Renders query results in a paginated react-table
+│   ├── index.js           # React entry point
+│   ├── App.css / index.css
+│   └── reportWebVitals.js
+├── package.json
+└── README.md
+```
 
-### Analyzing the Bundle Size
+## How It Works
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+`App.js` builds SQL strings from user input (a free-form query, a count for the
+top-N forms, or a selected genre) and sends them to the backend query endpoint.
+The backend returns `columns` and `rows`, which are passed to `TableComponent`
+and rendered as a paginated table.
 
-### Making a Progressive Web App
+## Notes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- The backend query endpoint is hard-coded in `src/App.js`. For a different
+  environment, change that URL (and consider moving it to an environment
+  variable / `.env` file).
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Built by the **Triangulation** team.
