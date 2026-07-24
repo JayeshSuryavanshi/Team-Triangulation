@@ -9,6 +9,9 @@
 # production
 /build
 
+# copied from node_modules by scripts/copy-sql-wasm.js (kept in sync with the installed sql.js)
+/public/sql-wasm.wasm
+
 # misc
 .DS_Store
 .env
