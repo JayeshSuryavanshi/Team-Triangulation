@@ -1,8 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+// Avoid loading the SQLite WASM engine in jsdom — the panels only need a
+// runQuery that resolves.
+jest.mock('./db', () => ({
+  runQuery: jest.fn().mockResolvedValue({ columns: [], rows: [] }),
+}));
+
+test('renders the app header and query tabs', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /triangulation/i })).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: /sql console/i })).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: /top directors/i })).toBeInTheDocument();
 });

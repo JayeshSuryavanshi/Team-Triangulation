@@ -1,41 +1,46 @@
-# Triangulation — IMDb Movie & TV Database Explorer
+# Triangulation — IMDb SQL Explorer
 
-A React single-page web app for exploring an IMDb-style movies and TV database.
-It provides a simple UI to run ad-hoc SQL queries and a set of pre-built "top N"
-queries (top movies, top TV series, top directors, and titles by genre) against
-a backend query API, displaying the results in paginated tables.
+A React single-page app for exploring an IMDb-style movie & TV database with
+SQL. Write free-form queries or run pre-built explorers (top movies, top TV
+series, top directors, browse-by-genre) and view the results in a paginated
+table.
 
-This is the frontend client built by the Triangulation team. It talks to a
-separate backend service that executes SQL against the project database and
-returns column/row JSON.
+**It runs entirely in your browser.** A real SQLite database (SQLite compiled to
+WebAssembly via [sql.js](https://sql.js.org/)) is created in memory and seeded
+from a bundled sample dataset — so there is no backend to run and no network
+calls. Clone it, `npm install`, `npm start`, and you're querying.
+
+> Originally a University at Buffalo *Data Management & Query Languages* (DMQL)
+> course project (2022). The original frontend POSTed SQL to a Flask backend on
+> an EC2 box; that server is long gone. This refined version embeds the database
+> so the app is self-contained and runnable by anyone. The optional backend path
+> is preserved — see [Using a real backend](#using-a-real-backend-optional).
 
 ## Features
 
-- **Free-form SQL query** — type any query and view the results in a table.
-- **Top movies** — list the top N highest-rated movies (with more than 1000 votes).
-- **Top TV series** — list the top N highest-rated TV series (with more than 1000 votes).
-- **Top directors** — list the top N directors ranked by the average rating of their titles.
-- **Browse by genre** — pick a genre (Action, Comedy, Drama, Horror, Sci-Fi, and ~20 more) and list matching titles.
-- **Paginated results** — every result set is rendered with `react-table` (configurable page size).
+- **SQL console** — write any SQL and run it against the in-browser database,
+  with a schema reference and one-click example queries.
+- **Top movies / TV series** — the top *N* highest-rated titles (with more than
+  1,000 votes).
+- **Top directors** — directors ranked by the average rating across their titles.
+- **Browse by genre** — pick from 26 genres and list matching titles, best-rated
+  first.
+- **Paginated results** with adjustable page size.
 
-## Tech Stack
+## Tech stack
 
-- [React 18](https://reactjs.org/) (class components)
-- [Create React App](https://github.com/facebook/create-react-app) / `react-scripts` (build tooling)
-- [Material UI (MUI v5)](https://mui.com/) and `@material-ui/core` v4 for UI components
-- [Emotion](https://emotion.sh/) for styling (MUI peer dependency)
-- [`react-table-6`](https://www.npmjs.com/package/react-table-6) for rendering result tables
-- Fetches data from a backend query API via `fetch` (HTTP `POST /query`)
+- [React 18](https://react.dev/) (function components + hooks)
+- [Material UI v5](https://mui.com/) for the interface
+- [sql.js](https://sql.js.org/) — SQLite compiled to WebAssembly, running in the
+  browser
+- [Create React App](https://create-react-app.dev/) via
+  [CRACO](https://craco.js.org/) (for a small webpack tweak sql.js needs)
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (a current LTS release is recommended) and npm.
-- Access to the backend query API. The frontend `POST`s queries to a query
-  endpoint and expects a JSON response of the form `{ "columns": [...], "rows": [...] }`.
-  The endpoint URL is currently hard-coded in `src/App.js`; update it there to
-  point at your backend instance.
+- [Node.js](https://nodejs.org/) (a current LTS release) and npm.
 
 ### Installation
 
@@ -45,22 +50,22 @@ cd Team-Triangulation
 npm install
 ```
 
+`npm install` runs a `postinstall` step that copies the sql.js WebAssembly
+binary into `public/` so it can be served locally.
+
 ### Running the app
 
 ```bash
 npm start
 ```
 
-Runs the app in development mode at [http://localhost:3000](http://localhost:3000).
-The page reloads automatically on changes.
+Opens the app at [http://localhost:3000](http://localhost:3000) with hot reload.
 
-### Running tests
+### Tests
 
 ```bash
 npm test
 ```
-
-Launches the test runner in interactive watch mode.
 
 ### Production build
 
@@ -68,38 +73,77 @@ Launches the test runner in interactive watch mode.
 npm run build
 ```
 
-Builds the app into the `build/` folder, optimized and minified for deployment.
+Outputs an optimized bundle to `build/`. Because `homepage` is set to `"."`, the
+build uses relative asset paths and can be served from any static host or
+subpath.
 
-## Project Structure
+## How it works
+
+On first query the app initializes sql.js, creates the schema, and seeds it from
+the bundled dataset (`src/db/data.js`). Every query then runs locally:
 
 ```
-.
-├── public/                # Static assets and HTML template
-│   ├── index.html
-│   └── manifest.json
-├── src/
-│   ├── App.js             # Main component: query form, top-N forms, genre selector
-│   ├── TableComponent.js  # Renders query results in a paginated react-table
-│   ├── index.js           # React entry point
-│   ├── App.css / index.css
-│   └── reportWebVitals.js
-├── package.json
-└── README.md
+Panel / SQL console ──▶ runQuery(sql, params) ──▶ sql.js (SQLite/WASM) ──▶ { columns, rows } ──▶ ResultsTable
 ```
 
-## How It Works
+### Schema
 
-`App.js` builds SQL strings from user input (a free-form query, a count for the
-top-N forms, or a selected genre) and sends them to the backend query endpoint.
-The backend returns `columns` and `rows`, which are passed to `TableComponent`
-and rendered as a paginated table.
+| Table           | Columns                                              |
+| --------------- | ---------------------------------------------------- |
+| `titles`        | `title_id`, `title_type`, `original_title`, `start_year` |
+| `title_ratings` | `title_id`, `average_rating`, `num_votes`            |
+| `title_genres`  | `title_id`, `genre`                                  |
+| `person_names`  | `name_id`, `full_name`                               |
+| `directors`     | `title_id`, `name_id`                                |
 
-## Notes
+### Project structure
 
-- The backend query endpoint is hard-coded in `src/App.js`. For a different
-  environment, change that URL (and consider moving it to an environment
-  variable / `.env` file).
+```
+src/
+├── App.jsx                 # Layout: header, tabs, footer
+├── queries.js              # Pre-built query builders + schema/example metadata
+├── theme.js                # MUI theme
+├── db/
+│   ├── data.js             # Bundled sample dataset + schema DDL
+│   └── index.js            # sql.js engine + runQuery()
+├── hooks/
+│   └── useQueryRunner.js   # Shared run/loading/error/result lifecycle
+└── components/
+    ├── SqlConsole.jsx      # Free-form SQL playground
+    ├── TopNPanel.jsx       # Reusable "top N …" explorer
+    ├── GenrePanel.jsx      # Browse-by-genre explorer
+    └── ResultsTable.jsx    # Paginated MUI results table
+```
 
----
+## A note on SQL injection
 
-Built by the **Triangulation** team.
+The original version concatenated user input straight into SQL strings and sent
+free-form SQL to a live database — a textbook injection hole. This version:
+
+- passes all user input (the "top N" count, the selected genre) as **bound
+  parameters**, never string concatenation; and
+- runs the free-form SQL console against a **sandboxed, in-memory SQLite database
+  that lives only in your browser tab** — there is no shared server or data to
+  compromise. It's a SQL playground by design.
+
+## Using a real backend (optional)
+
+To point the app at a query API instead of the embedded database, set:
+
+```bash
+# .env
+REACT_APP_QUERY_API=https://your-host/query
+```
+
+Queries are then `POST`ed as `{ "query": "<sql>", "params": [...] }` and the
+endpoint must return `{ "columns": [{ "Header", "accessor" }], "rows": [ ... ] }`.
+
+## Data & attribution
+
+The bundled dataset is a small, hand-curated set of well-known titles for
+demonstration only — **not** the full [IMDb dataset](https://www.imdb.com/interfaces/).
+Ratings and vote counts are approximate. IMDb is a trademark of IMDb.com, Inc.
+
+## License
+
+[MIT](./LICENSE) — built by the **Triangulation** team.
