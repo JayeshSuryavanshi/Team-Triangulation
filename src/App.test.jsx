@@ -3,8 +3,8 @@ import App from './App';
 
 // Avoid loading the SQLite WASM engine in jsdom — the panels only need a
 // runQuery that resolves.
-jest.mock('./db', () => ({
-  runQuery: jest.fn().mockResolvedValue({ columns: [], rows: [] }),
+vi.mock('./db', () => ({
+  runQuery: vi.fn().mockResolvedValue({ columns: [], rows: [] }),
 }));
 
 test('renders the app header and query tabs', () => {

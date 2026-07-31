@@ -8,7 +8,7 @@ table.
 **It runs entirely in your browser.** A real SQLite database (SQLite compiled to
 WebAssembly via [sql.js](https://sql.js.org/)) is created in memory and seeded
 from a bundled sample dataset — so there is no backend to run and no network
-calls. Clone it, `npm install`, `npm start`, and you're querying.
+calls. Clone it, `npm install`, `npm run dev`, and you're querying.
 
 > Originally a University at Buffalo *Data Management & Query Languages* (DMQL)
 > course project (2022). The original frontend POSTed SQL to a Flask backend on
@@ -33,8 +33,8 @@ calls. Clone it, `npm install`, `npm start`, and you're querying.
 - [Material UI v5](https://mui.com/) for the interface
 - [sql.js](https://sql.js.org/) — SQLite compiled to WebAssembly, running in the
   browser
-- [Create React App](https://create-react-app.dev/) via
-  [CRACO](https://craco.js.org/) (for a small webpack tweak sql.js needs)
+- [Vite](https://vite.dev/) for the dev server and production build, with
+  [Vitest](https://vitest.dev/) for the test suite
 
 ## Getting started
 
@@ -50,16 +50,16 @@ cd Team-Triangulation
 npm install
 ```
 
-`npm install` runs a `postinstall` step that copies the sql.js WebAssembly
-binary into `public/` so it can be served locally.
+Vite bundles the sql.js WebAssembly binary as a hashed asset automatically (via
+an `import … ?url`), so there is no separate copy step to run.
 
 ### Running the app
 
 ```bash
-npm start
+npm run dev
 ```
 
-Opens the app at [http://localhost:3000](http://localhost:3000) with hot reload.
+Opens the app at [http://localhost:5173](http://localhost:5173) with hot reload.
 
 ### Tests
 
@@ -73,7 +73,7 @@ npm test
 npm run build
 ```
 
-Outputs an optimized bundle to `build/`. Because `homepage` is set to `"."`, the
+Outputs an optimized bundle to `dist/`. Because Vite `base` is set to `"./"`, the
 build uses relative asset paths and can be served from any static host or
 subpath.
 
@@ -132,7 +132,7 @@ To point the app at a query API instead of the embedded database, set:
 
 ```bash
 # .env
-REACT_APP_QUERY_API=https://your-host/query
+VITE_QUERY_API=https://your-host/query
 ```
 
 Queries are then `POST`ed as `{ "query": "<sql>", "params": [...] }` and the

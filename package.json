@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "In-browser IMDb SQL explorer — runs real SQLite (via sql.js) against a bundled sample dataset, no backend required.",
-  "homepage": ".",
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
@@ -14,37 +13,19 @@
     "sql.js": "^1.10.3"
   },
   "devDependencies": {
-    "@craco/craco": "^7.1.0",
     "@testing-library/jest-dom": "^6.4.6",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.5.2",
-    "react-scripts": "5.0.1"
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^26.0.0",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
   },
   "scripts": {
-    "prestart": "node scripts/copy-sql-wasm.js",
-    "prebuild": "node scripts/copy-sql-wasm.js",
-    "pretest": "node scripts/copy-sql-wasm.js",
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test",
-    "postinstall": "node scripts/copy-sql-wasm.js"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }

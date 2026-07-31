@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * End-to-end check of the actual SQLite engine: initialize sql.js, seed the
  * bundled data, and run the real query builders. This exercises the schema DDL,

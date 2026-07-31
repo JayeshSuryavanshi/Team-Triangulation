@@ -5,13 +5,16 @@
 // from the bundled sample dataset. No server, no network.
 //
 // The original course project POSTed SQL to a Flask backend. That path is
-// preserved as an opt-in: set REACT_APP_QUERY_API to a query endpoint and every
+// preserved as an opt-in: set VITE_QUERY_API to a query endpoint and every
 // query is forwarded there instead. See README for the expected response shape.
 
 import initSqlJs from 'sql.js';
+// Vite emits the sql.js wasm as a hashed asset and gives us its URL. Used as the
+// `locateFile` target for the browser build (replaces the old copy-to-public step).
+import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { SCHEMA, DATASET } from './data';
 
-const API_URL = process.env.REACT_APP_QUERY_API;
+const API_URL = import.meta.env.VITE_QUERY_API;
 
 let dbPromise = null;
 
@@ -41,11 +44,14 @@ export function seedDatabase(db) {
 }
 
 async function createDb() {
-  const SQL = await initSqlJs({
-    // Serve the wasm binary from the app root (copied into public/ at build time
-    // by scripts/copy-sql-wasm.js). PUBLIC_URL handles non-root deployments.
-    locateFile: (file) => `${process.env.PUBLIC_URL || ''}/${file}`,
-  });
+  // Environment-aware wasm resolution:
+  //  - Browser (dev/prod): load the binary from the URL Vite emits for the asset.
+  //  - Vitest (node): pass no config so sql.js resolves the binary from its own
+  //    installed dist directory on disk (node_modules/sql.js/dist/sql-wasm.wasm),
+  //    where the Vite asset URL would not resolve.
+  const options =
+    import.meta.env.MODE === 'test' ? undefined : { locateFile: () => sqlWasmUrl };
+  const SQL = await initSqlJs(options);
 
   return seedDatabase(new SQL.Database());
 }
